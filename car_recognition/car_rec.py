@@ -32,6 +32,7 @@ def allFilePath(rootPath,allFIleList):
             allFilePath(os.path.join(rootPath,temp),allFIleList)    
 
 def get_color_and_score(model,img,device):
+    print('img: ', img)
     img = imge_processing(img,device)
     result = model(img)
     out =F.softmax( result)

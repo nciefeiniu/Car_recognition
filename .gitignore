@@ -29,3 +29,4 @@ mytest/
 !*.ttf
 !*.txt
 !*.md
+.idea
