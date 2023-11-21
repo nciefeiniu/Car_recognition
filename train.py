@@ -35,7 +35,7 @@ from utils.plots import plot_images, plot_labels, plot_results, plot_evolution
 from utils.torch_utils import ModelEMA, select_device, intersect_dicts, torch_distributed_zero_first
 
 logger = logging.getLogger(__name__)
-begin_save=1
+begin_save = 1
 try:
     import wandb
 except ImportError:
@@ -257,7 +257,8 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
         if rank != -1:
             dataloader.sampler.set_epoch(epoch)
         pbar = enumerate(dataloader)
-        logger.info(('\n' + '%10s' * 9) % ('Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'landmark', 'total', 'targets', 'img_size'))
+        logger.info(
+            ('\n' + '%10s' * 9) % ('Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'landmark', 'total', 'targets', 'img_size'))
         if rank in [-1, 0]:
             pbar = tqdm(pbar, total=nb)  # progress bar
         optimizer.zero_grad()
@@ -381,13 +382,13 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                 torch.save(ckpt, last)
                 if best_fitness == fi:
                     ckpt_best = {
-                            'epoch': epoch,
-                            'best_fitness': best_fitness,
-                            # 'training_results': f.read(),
-                            'model': ema.ema,
-                            # 'optimizer': None if final_epoch else optimizer.state_dict(),
-                            # 'wandb_id': wandb_run.id if wandb else None
-                            }
+                        'epoch': epoch,
+                        'best_fitness': best_fitness,
+                        # 'training_results': f.read(),
+                        'model': ema.ema,
+                        # 'optimizer': None if final_epoch else optimizer.state_dict(),
+                        # 'wandb_id': wandb_run.id if wandb else None
+                    }
                     torch.save(ckpt_best, best)
                 del ckpt
         # end epoch ----------------------------------------------------------------------------------------------------

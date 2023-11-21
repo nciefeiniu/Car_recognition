@@ -17,11 +17,13 @@ from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 from tqdm import tqdm
 
+
 def dynamic_resize(shape, stride=64):
     max_size = max(shape[0], shape[1])
     if max_size % stride != 0:
-        max_size = (int(max_size / stride) + 1) * stride 
+        max_size = (int(max_size / stride) + 1) * stride
     return max_size
+
 
 def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):
     # Rescale coords (xyxy) from img1_shape to img0_shape
@@ -35,7 +37,7 @@ def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):
     coords[:, [0, 2, 4, 6, 8]] -= pad[0]  # x padding
     coords[:, [1, 3, 5, 7, 9]] -= pad[1]  # y padding
     coords[:, :10] /= gain
-    #clip_coords(coords, img0_shape)
+    # clip_coords(coords, img0_shape)
     coords[:, 0].clamp_(0, img0_shape[1])  # x1
     coords[:, 1].clamp_(0, img0_shape[0])  # y1
     coords[:, 2].clamp_(0, img0_shape[1])  # x2
@@ -48,31 +50,33 @@ def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):
     coords[:, 9].clamp_(0, img0_shape[0])  # y5
     return coords
 
+
 def show_results(img, xywh, conf, landmarks, class_num):
-    h,w,c = img.shape
+    h, w, c = img.shape
     tl = 1 or round(0.002 * (h + w) / 2) + 1  # line/font thickness
     x1 = int(xywh[0] * w - 0.5 * xywh[2] * w)
     y1 = int(xywh[1] * h - 0.5 * xywh[3] * h)
     x2 = int(xywh[0] * w + 0.5 * xywh[2] * w)
     y2 = int(xywh[1] * h + 0.5 * xywh[3] * h)
-    cv2.rectangle(img, (x1,y1), (x2, y2), (0,255,0), thickness=tl, lineType=cv2.LINE_AA)
+    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), thickness=tl, lineType=cv2.LINE_AA)
 
-    clors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255)]
+    clors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255)]
 
     for i in range(5):
         point_x = int(landmarks[2 * i] * w)
         point_y = int(landmarks[2 * i + 1] * h)
-        cv2.circle(img, (point_x, point_y), tl+1, clors[i], -1)
+        cv2.circle(img, (point_x, point_y), tl + 1, clors[i], -1)
 
     tf = max(tl - 1, 1)  # font thickness
     label = str(int(class_num)) + ': ' + str(conf)[:5]
     cv2.putText(img, label, (x1, y1 - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
     return img
 
+
 def detect(model, img0):
     stride = int(model.stride.max())  # model stride
     imgsz = opt.img_size
-    if imgsz <= 0:                    # original size    
+    if imgsz <= 0:  # original size
         imgsz = dynamic_resize(img0.shape)
     imgsz = check_img_size(imgsz, s=64)  # check img_size
     img = letterbox(img0, imgsz)[0]
@@ -106,13 +110,14 @@ def detect(model, img0):
             y1 = int(xywh[1] * h - 0.5 * xywh[3] * h)
             x2 = int(xywh[0] * w + 0.5 * xywh[2] * w)
             y2 = int(xywh[1] * h + 0.5 * xywh[3] * h)
-            boxes.append([x1, y1, x2-x1, y2-y1, conf])
+            boxes.append([x1, y1, x2 - x1, y2 - y1, conf])
     return boxes
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default='runs/train/exp5/weights/last.pt', help='model.pt path(s)')
+    parser.add_argument('--weights', nargs='+', type=str, default='runs/train/exp5/weights/last.pt',
+                        help='model.pt path(s)')
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.02, help='object confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.5, help='IOU threshold for NMS')
@@ -124,9 +129,11 @@ if __name__ == '__main__':
     parser.add_argument('--project', default='runs/detect', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
-    parser.add_argument('--save_folder', default='./widerface_evaluate/widerface_txt/', type=str, help='Dir to save txt results')
+    parser.add_argument('--save_folder', default='./widerface_evaluate/widerface_txt/', type=str,
+                        help='Dir to save txt results')
     parser.add_argument('--dataset_folder', default='../WiderFace/val/images/', type=str, help='dataset path')
-    parser.add_argument('--folder_pict', default='/yolov5-face/data/widerface/val/wider_val.txt', type=str, help='folder_pict')
+    parser.add_argument('--folder_pict', default='/yolov5-face/data/widerface/val/wider_val.txt', type=str,
+                        help='folder_pict')
     opt = parser.parse_args()
     print(opt)
 
@@ -161,10 +168,11 @@ if __name__ == '__main__':
             if not os.path.isdir(dirname):
                 os.makedirs(dirname)
             with open(save_name, "w") as fd:
-                file_name = os.path.basename(save_name)[:-4] + "\n"            
+                file_name = os.path.basename(save_name)[:-4] + "\n"
                 bboxs_num = str(len(boxes)) + "\n"
                 fd.write(file_name)
                 fd.write(bboxs_num)
                 for box in boxes:
-                    fd.write('%d %d %d %d %.03f' % (box[0], box[1], box[2], box[3], box[4] if box[4] <= 1 else 1) + '\n')
+                    fd.write(
+                        '%d %d %d %d %.03f' % (box[0], box[1], box[2], box[3], box[4] if box[4] <= 1 else 1) + '\n')
         print('done.')
