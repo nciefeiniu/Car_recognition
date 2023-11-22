@@ -333,7 +333,7 @@ if __name__ == '__main__':
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
         fps = capture.get(cv2.CAP_PROP_FPS)  # 帧数
         width, height = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))  # 宽高
-        out = cv2.VideoWriter('result.mp4', fourcc, fps, (width, height))  # 写入视频
+        out = cv2.VideoWriter('./result/result.mp4', fourcc, fps, (width, height))  # 写入视频
         frame_count = 0
         fps_all = 0
         rate, FrameNumber, duration = get_second(capture)
@@ -357,26 +357,13 @@ if __name__ == '__main__':
                 str_fps = f'fps:{fps:.4f}'
 
                 cv2.putText(ori_img, str_fps, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                cv2.imshow("haha",ori_img)
+                cv2.imshow("haha", ori_img)
                 cv2.waitKey(1)
                 out.write(ori_img)
-
-                # current_time = int(frame_count/FrameNumber*duration)
-                # sec = current_time%60
-                # minute = current_time//60
-                # for result_ in result_list:
-                #     plate_no = result_['plate_no']
-                #     if not is_car_number(pattern_str,plate_no):
-                #         continue
-                #     print(f'车牌号:{plate_no},时间:{minute}分{sec}秒')
-                #     time_str =f'{minute}分{sec}秒'
-                #     writer.writerow({"车牌":plate_no,"时间":time_str})
-                # out.write(ori_img)
-
-
         else:
             print("失败")
         capture.release()
+
         out.release()
         cv2.destroyAllWindows()
         print(f"all frame is {frame_count},average fps is {fps_all / frame_count} fps")
