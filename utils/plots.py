@@ -300,7 +300,7 @@ def plot_labels(labels, save_dir=Path(''), loggers=None):
 
 def plot_evolution(yaml_file='data/hyp.finetune.yaml'):  # from utils.plots import *; plot_evolution()
     # Plot hyperparameter evolution results in evolve.txt
-    with open(yaml_file) as f:
+    with open(yaml_file, encoding='utf-8') as f:
         hyp = yaml.load(f, Loader=yaml.SafeLoader)
     x = np.loadtxt('evolve.txt', ndmin=2)
     f = fitness(x)

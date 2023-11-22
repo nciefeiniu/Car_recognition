@@ -30,7 +30,7 @@ def convert(size, box):
 
 def wider2face(root, phase='val', ignore_small=0):
     data = {}
-    with open('{}/{}/label.txt'.format(root, phase), 'r') as f:
+    with open('{}/{}/label.txt'.format(root, phase), 'r', encoding='utf-8') as f:
         lines = f.readlines()
         for line in tqdm(lines):
             line = line.strip()

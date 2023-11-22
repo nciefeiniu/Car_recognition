@@ -139,7 +139,7 @@ if __name__ == '__main__':
 
     # changhy : read folder_pict
     pict_folder = {}
-    with open(opt.folder_pict, 'r') as f:
+    with open(opt.folder_pict, 'r', encoding='utf-8') as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip().split('/')
@@ -167,7 +167,7 @@ if __name__ == '__main__':
             dirname = os.path.dirname(save_name)
             if not os.path.isdir(dirname):
                 os.makedirs(dirname)
-            with open(save_name, "w") as fd:
+            with open(save_name, "w", encoding='utf-8') as fd:
                 file_name = os.path.basename(save_name)[:-4] + "\n"
                 bboxs_num = str(len(boxes)) + "\n"
                 fd.write(file_name)

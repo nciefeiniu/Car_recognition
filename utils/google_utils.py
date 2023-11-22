@@ -88,7 +88,7 @@ def gdrive_download(id='16TiPfZj7htmTyhntwcZyEEAejOUxuT6m', file='tmp.zip'):
 
 
 def get_token(cookie="./cookie"):
-    with open(cookie) as f:
+    with open(cookie, encoding='utf-8') as f:
         for line in f:
             if "download" in line:
                 return line.split()[-1]

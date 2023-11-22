@@ -53,7 +53,7 @@ for val in annotation_files:
         label_dict[img_dir + "/" + img_label_name].append(f"{obj_class} {x_center} {y_center} {width} {height}\n")
 
     for filename in label_dict:
-        with open(filename, "w") as file:
+        with open(filename, "w", encoding='utf-8') as file:
             for string in label_dict[filename]:
                 file.write(string)
 

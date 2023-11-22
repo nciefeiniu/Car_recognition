@@ -145,7 +145,7 @@ if __name__ == '__main__':
         # check pb
         with tf.Graph().as_default():
             graph_def = tf.GraphDef()
-            with open(outpb, "rb") as f:
+            with open(outpb, "rb", encoding='utf-8') as f:
                 graph_def.ParseFromString(f.read())
                 tf.import_graph_def(graph_def, name="")
             with tf.Session() as sess:

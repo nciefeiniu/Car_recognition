@@ -132,7 +132,7 @@ class LoadFaceImagesAndLabels(Dataset):  # for training/testing
                 if p.is_dir():  # dir
                     f += glob.glob(str(p / '**' / '*.*'), recursive=True)
                 elif p.is_file():  # file
-                    with open(p, 'r') as t:
+                    with open(p, 'r', encoding='utf-8') as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
                         f += [x.replace('./', parent) if x.startswith('./') else x for x in t]  # local to global path
@@ -229,7 +229,7 @@ class LoadFaceImagesAndLabels(Dataset):  # for training/testing
                 # verify labels
                 if os.path.isfile(lb_file):
                     nf += 1  # label found
-                    with open(lb_file, 'r') as f:
+                    with open(lb_file, 'r', encoding='utf-8') as f:
                         l = np.array([x.split() for x in f.read().strip().splitlines()], dtype=np.float32)  # labels
                     if len(l):
                         assert l.shape[1] == 13, 'labels require 13 columns each'
@@ -806,7 +806,7 @@ def extract_boxes(path='../coco128/'):  # from utils.datasets import *; extract_
             # labels
             lb_file = Path(img2label_paths([str(im_file)])[0])
             if Path(lb_file).exists():
-                with open(lb_file, 'r') as f:
+                with open(lb_file, 'r', encoding='utf-8') as f:
                     lb = np.array([x.split() for x in f.read().strip().splitlines()], dtype=np.float32)  # labels
 
                 for j, x in enumerate(lb):
@@ -839,5 +839,5 @@ def autosplit(path='../coco128', weights=(0.9, 0.1, 0.0)):  # from utils.dataset
     [(path / x).unlink() for x in txt if (path / x).exists()]  # remove existing
     for i, img in tqdm(zip(indices, files), total=n):
         if img.suffix[1:] in img_formats:
-            with open(path / txt[i], 'a') as f:
+            with open(path / txt[i], 'a', encoding='utf-8') as f:
                 f.write(str(img) + '\n')  # add image to txt file

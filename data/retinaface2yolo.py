@@ -109,7 +109,7 @@ for i in range(len(aa.imgs_path)):
     base_txt = os.path.basename(aa.imgs_path[i])[:-4] +".txt"
     save_img_path = os.path.join(save_path, base_img)
     save_txt_path = os.path.join(save_path, base_txt)
-    with open(save_txt_path, "w") as f:
+    with open(save_txt_path, "w", encoding='utf-8') as f:
         height, width, _ = img.shape
         labels = aa.words[i]
         annotations = np.zeros((0, 14))

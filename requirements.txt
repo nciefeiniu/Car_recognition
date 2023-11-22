@@ -17,10 +17,10 @@ kiwisolver
 matplotlib
 matplotlib-inline
 nest-asyncio
-numpy
 opencv-python
 packaging
-pandas
+pandas==1.5.3
+numpy~=1.20.3
 parso
 pickleshare
 Pillow
@@ -45,4 +45,5 @@ traitlets
 typing-extensions
 urllib3
 wcwidth
-# pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113
+tensorboard==
+# pip install torch==1.11+cu113 torchvision==0.12+cu113 torchaudio==0.11 --extra-index-url https://download.pytorch.org/whl/cu113
