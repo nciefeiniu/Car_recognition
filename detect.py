@@ -60,7 +60,6 @@ def load_model(weights, device):
 
 
 def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):  # 返回到原图坐标
-    # Rescale coords (xyxy) from img1_shape to img0_shape
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
         pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
@@ -80,8 +79,6 @@ def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):  # �
     coords[:, 5].clamp_(0, img0_shape[0])  # y3
     coords[:, 6].clamp_(0, img0_shape[1])  # x4
     coords[:, 7].clamp_(0, img0_shape[0])  # y4
-    # coords[:, 8].clamp_(0, img0_shape[1])  # x5
-    # coords[:, 9].clamp_(0, img0_shape[0])  # y5
     return coords
 
 
@@ -132,13 +129,10 @@ def get_plate_rec_landmark(img, xyxy, conf, landmarks, class_num, device, plate_
     return result_dict
 
 
-def detect_Recognition_plate(model, orgimg, device, plate_rec_model, img_size, car_rec_model=None):
-    # Load model
-    # img_size = opt_img_size
+def detect_recognition_plate(model, orgimg, device, plate_rec_model, img_size, car_rec_model=None):
     conf_thres = 0.3
     iou_thres = 0.5
     dict_list = []
-    # orgimg = cv2.imread(image_path)  # BGR
     img0 = copy.deepcopy(orgimg)
     assert orgimg is not None, 'Image Not Found '
     h0, w0 = orgimg.shape[:2]  # orig hw
@@ -146,17 +140,10 @@ def detect_Recognition_plate(model, orgimg, device, plate_rec_model, img_size, c
     if r != 1:  # always resize down, only resize up if training with augmentation
         interp = cv2.INTER_AREA if r < 1 else cv2.INTER_LINEAR
         img0 = cv2.resize(img0, (int(w0 * r), int(h0 * r)), interpolation=interp)
-
     imgsz = check_img_size(img_size, s=model.stride.max())  # check img_size
-
     img = letterbox(img0, new_shape=imgsz)[0]
-    # img =process_data(img0)
-    # Convert
     img = img[:, :, ::-1].transpose(2, 0, 1).copy()  # BGR to RGB, to 3x416x416
-
-    # Run inference
     t0 = time.time()
-
     img = torch.from_numpy(img).to(device)
     img = img.float()  # uint8 to fp16/32
     img /= 255.0  # 0 - 255 to 0.0 - 1.0
@@ -167,18 +154,11 @@ def detect_Recognition_plate(model, orgimg, device, plate_rec_model, img_size, c
     t1 = time_synchronized()
     pred = model(img)[0]
     t2 = time_synchronized()
-    # print(f"infer time is {(t2-t1)*1000} ms")
 
-    # Apply NMS
     pred = non_max_suppression_face(pred, conf_thres, iou_thres)
 
-    # print('img.shape: ', img.shape)
-    # print('orgimg.shape: ', orgimg.shape)
-
-    # Process detections
     for i, det in enumerate(pred):  # detections per image
         if len(det):
-            # Rescale boxes from img_size to im0 size
             det[:, :4] = scale_coords(img.shape[2:], det[:, :4], orgimg.shape).round()
 
             # Print results
@@ -196,7 +176,6 @@ def detect_Recognition_plate(model, orgimg, device, plate_rec_model, img_size, c
                                                      car_rec_model)
                 dict_list.append(result_dict)
     return dict_list
-    # cv2.imwrite('result.jpg', orgimg)
 
 
 def draw_result(orgimg, dict_list):
@@ -263,17 +242,13 @@ if __name__ == '__main__':
                         help='model.pt path(s)')  # 检测模型
     parser.add_argument('--rec_model', type=str, default='./weights/cars_number.pth',
                         help='model.pt path(s)')  # 车牌识别+车牌颜色识别模型
-    parser.add_argument('--car_rec_model', type=str, default='./weights/car_rec_color.pth',
-                        help='car_rec_model')  # 车辆识别模型
     parser.add_argument('--image_path', type=str, default='./imgs/Quicker_20220930_181044.png', help='source')
     parser.add_argument('--img_size', type=int, default=384, help='inference size (pixels)')
     parser.add_argument('--output', type=str, default='./result1', help='source')
     parser.add_argument('--video', type=str, default='./imgs/6.mp4', help='source')
     parser.add_argument('--view-img', action='store_true', help='show results')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # device =torch.device("cpu")
     opt = parser.parse_args()
-    print(opt)
     save_path = opt.output
     count = 0
     if not os.path.exists(save_path):
@@ -281,8 +256,6 @@ if __name__ == '__main__':
 
     detect_model = load_model(opt.detect_model, device)  # 初始化检测模型
     plate_rec_model = init_model_ocr(device, opt.rec_model)  # 初始化识别模型
-    car_rec_model = init_car_rec_model(opt.car_rec_model, device)  # 初始化车辆识别模型
-    print(car_rec_model)
     # 算参数量
     total = sum(p.numel() for p in detect_model.parameters())
     total_1 = sum(p.numel() for p in plate_rec_model.parameters())
@@ -304,10 +277,7 @@ if __name__ == '__main__':
                     continue
                 if img.shape[-1] == 4:
                     img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-                # detect_one(model,img_path,device)
-                dict_list = detect_Recognition_plate(detect_model, img, device, plate_rec_model, opt.img_size,
-                                                     car_rec_model)
-                # print(dict_list)
+                dict_list = detect_recognition_plate(detect_model, img, device, plate_rec_model, opt.img_size)
                 ori_img = draw_result(img, dict_list)
                 img_name = os.path.basename(img_path)
                 save_img_path = os.path.join(save_path, img_name)
@@ -325,9 +295,7 @@ if __name__ == '__main__':
             img = cv_imread(opt.image_path)
             if img.shape[-1] == 4:
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-            # detect_one(model,img_path,device)
-            dict_list = detect_Recognition_plate(detect_model, img, device, plate_rec_model, opt.img_size,
-                                                 car_rec_model)
+            dict_list = detect_recognition_plate(detect_model, img, device, plate_rec_model, opt.img_size)
             ori_img = draw_result(img, dict_list)
             img_name = os.path.basename(opt.image_path)
             save_img_path = os.path.join(save_path, img_name)
@@ -351,10 +319,8 @@ if __name__ == '__main__':
                 ret, img = capture.read()
                 if not ret:
                     break
-                # if frame_count%rate==0:
                 img0 = copy.deepcopy(img)
-                dict_list = detect_Recognition_plate(detect_model, img, device, plate_rec_model, opt.img_size,
-                                                     car_rec_model)
+                dict_list = detect_recognition_plate(detect_model, img, device, plate_rec_model, opt.img_size)
                 ori_img = draw_result(img, dict_list)
                 t2 = cv2.getTickCount()
                 infer_time = (t2 - t1) / cv2.getTickFrequency()
@@ -363,7 +329,7 @@ if __name__ == '__main__':
                 str_fps = f'fps:{fps:.4f}'
 
                 cv2.putText(ori_img, str_fps, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                cv2.imshow("haha", ori_img)
+                cv2.imshow("CAR", ori_img)
                 cv2.waitKey(1)
                 out.write(ori_img)
         else:
