@@ -45,5 +45,5 @@ traitlets
 typing-extensions
 urllib3
 wcwidth
-tensorboard==
+tensorboard==2.14.0
 # pip install torch==1.11+cu113 torchvision==0.12+cu113 torchaudio==0.11 --extra-index-url https://download.pytorch.org/whl/cu113

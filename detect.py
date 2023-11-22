@@ -12,7 +12,7 @@ from utils.datasets import letterbox
 from utils.general import check_img_size, non_max_suppression_face, scale_coords
 from utils.torch_utils import time_synchronized
 from utils.cv_puttext import cv2ImgAddText
-from plate_recognition.plate_rec import get_plate_result, allFilePath, init_model, cv_imread
+from plate_recognition.plate_rec import get_plate_result, allFilePath, init_model, cv_imread, init_model_ocr
 # from plate_recognition.plate_cls import cv_imread
 from plate_recognition.double_plate_split_merge import get_split_merge
 from plate_recognition.color_rec import plate_color_rec, init_color_model
@@ -261,11 +261,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--detect_model', nargs='+', type=str, default='./weights/detect.pt',
                         help='model.pt path(s)')  # 检测模型
-    parser.add_argument('--rec_model', type=str, default='./weights/plate_rec_color.pth',
+    parser.add_argument('--rec_model', type=str, default='./weights/cars_number.pth',
                         help='model.pt path(s)')  # 车牌识别+车牌颜色识别模型
     parser.add_argument('--car_rec_model', type=str, default='./weights/car_rec_color.pth',
                         help='car_rec_model')  # 车辆识别模型
-    parser.add_argument('--image_path', type=str, default='./imgs/', help='source')
+    parser.add_argument('--image_path', type=str, default='./imgs/Quicker_20220930_181044.png', help='source')
     parser.add_argument('--img_size', type=int, default=384, help='inference size (pixels)')
     parser.add_argument('--output', type=str, default='./result1', help='source')
     parser.add_argument('--video', type=str, default='./imgs/6.mp4', help='source')
@@ -280,7 +280,7 @@ if __name__ == '__main__':
         os.mkdir(save_path)
 
     detect_model = load_model(opt.detect_model, device)  # 初始化检测模型
-    plate_rec_model = init_model(device, opt.rec_model)  # 初始化识别模型
+    plate_rec_model = init_model_ocr(device, opt.rec_model)  # 初始化识别模型
     car_rec_model = init_car_rec_model(opt.car_rec_model, device)  # 初始化车辆识别模型
     print(car_rec_model)
     # 算参数量
