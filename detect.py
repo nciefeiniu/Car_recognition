@@ -252,6 +252,12 @@ def get_second(capture):
 
 
 if __name__ == '__main__':
+
+    if not os.path.exists('./result'):
+        os.mkdir('result')
+    if not os.path.exists('./result1'):
+        os.mkdir('result1')
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--detect_model', nargs='+', type=str, default='./weights/detect.pt',
                         help='model.pt path(s)')  # 检测模型
