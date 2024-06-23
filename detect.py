@@ -202,6 +202,8 @@ def detect_Recognition_plate(model, orgimg, device, plate_rec_model, img_size, c
 def draw_result(orgimg, dict_list):
     result_str = ""
     for result in dict_list:
+        if result['class_type'] == '汽车':
+            continue
         rect_area = result['rect']
         object_no = result['object_no']
         if not object_no == 2:
@@ -265,10 +267,10 @@ if __name__ == '__main__':
                         help='model.pt path(s)')  # 车牌识别+车牌颜色识别模型
     parser.add_argument('--car_rec_model', type=str, default='./weights/car_rec_color.pth',
                         help='car_rec_model')  # 车辆识别模型
-    parser.add_argument('--image_path', type=str, default='./imgs/', help='source')
+    parser.add_argument('--image_path', type=str, default='./imgs/test5.jpg', help='source')
     parser.add_argument('--img_size', type=int, default=384, help='inference size (pixels)')
     parser.add_argument('--output', type=str, default='./result1', help='source')
-    parser.add_argument('--video', type=str, default='./imgs/6.mp4', help='source')
+    parser.add_argument('--video', type=str, default='', help='source')
     parser.add_argument('--view-img', action='store_true', help='show results')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # device =torch.device("cpu")
@@ -331,6 +333,8 @@ if __name__ == '__main__':
             ori_img = draw_result(img, dict_list)
             img_name = os.path.basename(opt.image_path)
             save_img_path = os.path.join(save_path, img_name)
+            cv2.imshow("result", ori_img)
+            cv2.waitKey(10000)
             cv2.imwrite(save_img_path, ori_img)
 
     else:  # 处理视频
