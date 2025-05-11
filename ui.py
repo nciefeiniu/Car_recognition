@@ -8,11 +8,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1138, 784)
+        MainWindow.resize(1138, 900)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.frame = QtWidgets.QFrame(self.centralwidget)
-        self.frame.setGeometry(QtCore.QRect(20, 20, 1101, 751))
+        self.frame.setGeometry(QtCore.QRect(20, 20, 1101, 857))
         self.frame.setMinimumSize(QtCore.QSize(760, 500))
         self.frame.setStyleSheet("#frame{\n"
                                  "background-color: rgb(255, 255, 255);\n"
@@ -252,6 +252,32 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
         self.pushButton_8.clicked.connect(MainWindow.showMinimized)  # type: ignore
+
+        # === 新增一个独立的滚动区域，放在 frame 下方 ===
+        self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
+        self.scrollArea.setGeometry(QtCore.QRect(60, 760, 1030, 100))  # x, y, width, height
+        self.scrollArea.setMinimumSize(QtCore.QSize(0, 80))
+        self.scrollArea.setMaximumSize(QtCore.QSize(16777215, 200))  # 最大高度限制为 200
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setObjectName("scrollArea")
+        self.scrollArea.setStyleSheet("""
+            QScrollArea {
+                border: 1px solid #ccc;
+                background-color: #f5f5f5;
+                padding: 5px;
+            }
+        """)
+
+        # 创建滚动区域的内容容器
+        self.scrollContent = QtWidgets.QWidget()
+        self.scrollLayout = QtWidgets.QVBoxLayout(self.scrollContent)
+        self.scrollLayout.setAlignment(QtCore.Qt.AlignTop)
+        self.scrollLayout.setSpacing(5)
+        self.scrollLayout.setContentsMargins(5, 5, 5, 5)
+
+        # 设置内容到 ScrollArea
+        self.scrollArea.setWidget(self.scrollContent)
+
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

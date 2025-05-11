@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2025/5/10 22:56
 # @File    : gui.py
+import datetime
 import shutil
 import traceback
 import warnings
@@ -11,11 +12,12 @@ import os.path as osp
 from PyQt5.QtGui import *
 from pathlib import Path
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QLabel
 import os
 import sys
 from PyQt5.QtCore import QTimer, Qt
 import cv2
+
 from detect import detect_image, load_model, init_model_ocr
 
 from ui import Ui_MainWindow
@@ -33,7 +35,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
 class MyWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, model_path):
+    def __init__(self):
         super().__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.stop = False
@@ -93,7 +95,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         org_path = self.file_path
         # 目标检测
         try:
-            now_img = detect_image(org_path, self._detect_model, self._plate_rec_model, self._device)
+            now_img, infos = detect_image(org_path, self._detect_model, self._plate_rec_model, self._device)
+            self.add_log('识别车牌')
+            for info in infos:
+                self.add_log(f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} - {info[0]} - {info[1]} - 车牌位置：{info[2]} - 置信度：{info[3]}')
         except:
             print(traceback.format_exc())
             return
@@ -123,7 +128,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         if ret:
             # 目标检测
             try:
-                now_img2 = detect_image(now_img, self._detect_model, self._plate_rec_model, self._device)
+                now_img2, infos = detect_image(now_img, self._detect_model, self._plate_rec_model, self._device)
+                for info in infos:
+                    self.add_log(
+                        f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} - {info[0]} - {info[1]} - 车牌位置：{info[2]} - 置信度：{info[3]}')
             except:
                 print(traceback.format_exc())
                 return
@@ -170,15 +178,24 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         # self.pushButton_9.setEnabled(True)
         # self.label_8.setText('检测窗口')
 
+    def add_log(self, message):
+        label = QLabel(message)
+        label.setWordWrap(True)  # 自动换行
+        label.setStyleSheet("padding: 4px; font-size: 12px; color: #333;")
+        self.scrollLayout.addWidget(label)
+
+        # 可选：自动滚动到底部
+        self.scrollArea.verticalScrollBar().setValue(
+            self.scrollArea.verticalScrollBar().maximum()
+        )
+
 
 if __name__ == '__main__':
-    # todo 修改模型权重路径
-    model_dir = 'runs/detect/train/weights/best.pt'
 
     #  解决2K等高分辨率屏幕不匹配或自适应问题，导致部分控件显示不完全
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
     app = QApplication(sys.argv)
-    my_window = MyWindow(model_dir)
+    my_window = MyWindow()
     my_window.show()
     sys.exit(app.exec_())

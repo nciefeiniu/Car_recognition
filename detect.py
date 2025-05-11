@@ -184,6 +184,8 @@ def draw_result(orgimg, dict_list):
         rect_area = result['rect']
         object_no = result['object_no']
         if not object_no == 2:
+            print('result: ', result)
+
             x, y, w, h = rect_area[0], rect_area[1], rect_area[2] - rect_area[0], rect_area[3] - rect_area[1]
             padding_w = 0.05 * w
             padding_h = 0.11 * h
@@ -222,6 +224,57 @@ def draw_result(orgimg, dict_list):
     return orgimg
 
 
+def draw_result2(orgimg, dict_list):
+    result_str = ""
+
+    rrr = []
+    for result in dict_list:
+        rect_area = result['rect']
+        object_no = result['object_no']
+        if not object_no == 2:
+            print('result: ', result)
+
+            x, y, w, h = rect_area[0], rect_area[1], rect_area[2] - rect_area[0], rect_area[3] - rect_area[1]
+            padding_w = 0.05 * w
+            padding_h = 0.11 * h
+            rect_area[0] = max(0, int(x - padding_w))
+            rect_area[1] = max(0, int(y - padding_h))
+            rect_area[2] = min(orgimg.shape[1], int(rect_area[2] + padding_w))
+            rect_area[3] = min(orgimg.shape[0], int(rect_area[3] + padding_h))
+
+            height_area = int(result['roi_height'] / 2)
+            landmarks = result['landmarks']
+            result_p = result['plate_no']
+            _type = '单层'
+            if result['object_no'] == 0:  # 单层
+                result_p += " " + result['plate_color']
+            else:  # 双层
+                _type = '双层'
+                result_p += " " + result['plate_color'] + "双层"
+            result_str += result_p + " "
+            rrr.append([result_p, _type, result['rect'], result['score']])
+            for i in range(4):  # 关键点
+                cv2.circle(orgimg, (int(landmarks[i][0]), int(landmarks[i][1])), 5, clors[i], -1)
+
+            if len(result) >= 1:
+                if "危险品" in result_p:  # 如果是危险品车牌，文字就画在下面
+                    orgimg = cv2ImgAddText(orgimg, result_p, rect_area[0], rect_area[3], (0, 255, 0), height_area)
+                else:
+                    orgimg = cv2ImgAddText(orgimg, result_p, rect_area[0] - height_area,
+                                           rect_area[1] - height_area - 10, (0, 255, 0), height_area)
+        else:
+            height_area = int((rect_area[3] - rect_area[1]) / 20)
+            car_color = result['car_color']
+            car_color_str = "车辆"
+            # car_color_str += car_color
+            orgimg = cv2ImgAddText(orgimg, car_color_str, rect_area[0], rect_area[1], (0, 255, 0), height_area)
+
+        cv2.rectangle(orgimg, (rect_area[0], rect_area[1]), (rect_area[2], rect_area[3]), object_color[object_no],
+                      2)  # 画框
+    print(result_str)
+    return orgimg, rrr
+
+
 def get_second(capture):
     if capture.isOpened():
         rate = capture.get(5)  # 帧速率
@@ -241,7 +294,7 @@ def detect_image(image_path, _detect_model, _plate_rec_model, _device):
     # _detect_model = load_model('./weights/detect.pt', _device)
     # _plate_rec_model = init_model_ocr(_device, './weights/cars_number.pth')
     _dict_list = detect_recognition_plate(_detect_model, _img, _device, _plate_rec_model, 384)
-    return draw_result(_img, _dict_list)
+    return draw_result2(_img, _dict_list)
 
 
 def detect_video(video_path):
@@ -314,6 +367,9 @@ if __name__ == '__main__':
             if img.shape[-1] == 4:
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
             dict_list = detect_recognition_plate(detect_model, img, device, plate_rec_model, opt.img_size)
+
+            print('dict_list', dict_list)
+
             ori_img = draw_result(img, dict_list)
             img_name = os.path.basename(opt.image_path)
             save_img_path = os.path.join(save_path, img_name)
