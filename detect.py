@@ -230,21 +230,22 @@ def get_second(capture):
         return int(rate), int(FrameNumber), int(duration)
 
 
-def detect_image(image_path):
-    img = cv_imread(image_path)
-    if img.shape[-1] == 4:
-        img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    detect_model = load_model('./weights/detect.pt', device)
-    plate_rec_model = init_model_ocr(device, './weights/cars_number.pth')
-    dict_list = detect_recognition_plate(detect_model, img, device, plate_rec_model, 384)
-    ori_img = draw_result(img, dict_list)
-    # img_name = os.path.basename(opt.image_path)
-    # save_img_path = os.path.join(save_path, img_name)
-    return ori_img
-    # cv2.imwrite(save_img_path, ori_img)
-    # cv2.imshow('result', ori_img)
-    # cv2.waitKey()
+def detect_image(image_path, _detect_model, _plate_rec_model, _device):
+    if isinstance(image_path, str):
+        _img = cv_imread(image_path)
+    else:
+        _img = image_path
+    if _img.shape[-1] == 4:
+        _img = cv2.cvtColor(_img, cv2.COLOR_BGRA2BGR)
+    # _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # _detect_model = load_model('./weights/detect.pt', _device)
+    # _plate_rec_model = init_model_ocr(_device, './weights/cars_number.pth')
+    _dict_list = detect_recognition_plate(_detect_model, _img, _device, _plate_rec_model, 384)
+    return draw_result(_img, _dict_list)
+
+
+def detect_video(video_path):
+    pass
 
 
 if __name__ == '__main__':

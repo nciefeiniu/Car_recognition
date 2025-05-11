@@ -13,12 +13,10 @@ from pathlib import Path
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 import os
-# from ultralytics import YOLOv10
 import sys
 from PyQt5.QtCore import QTimer, Qt
 import cv2
-# import detect_tools as tools
-# from paddleocr import PaddleOCR
+from detect import detect_image, load_model, init_model_ocr
 
 from ui import Ui_MainWindow
 
@@ -66,6 +64,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
 
         self.reset_vid()
 
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._detect_model = load_model('./weights/detect.pt', self._device)
+        self._plate_rec_model = init_model_ocr(self._device, './weights/cars_number.pth')
+
     def upload_img(self):
         """上传图片"""
         # 选择录像文件进行读取
@@ -91,28 +93,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         org_path = self.file_path
         # 目标检测
         try:
-            from detect import detect_image
-            now_img = detect_image(org_path)
+            now_img = detect_image(org_path, self._detect_model, self._plate_rec_model, self._device)
         except:
             print(traceback.format_exc())
-        # results = self.model.predict(source=org_path, imgsz=self.output_size, conf=self.conf_threshold)
-        # now_img = results[0].plot(labels=False)
-        # location_list = results[0].boxes.xyxy.tolist()
-        # location_list = [list(map(int, e)) for e in location_list]
-        # plates = []
-        # for i in range(len(location_list)):
-        #     x1, y1, x2, y2 = location_list[i]
-        #     im1 = now_img[y1 - 10:y2 + 10, x1 - 10:x2 + 10]
-        #     ocr = PaddleOCR(use_angle_cls=True, lang='ch')
-        #     result = ocr.ocr(im1, cls=True)
-        #     if len(result) > 0 and result[0] is not None:
-        #         plate = result[0][0][1][0]
-        #         plate = plate.replace('·', ' ')
-        #         plates.append(plate)
-        # for index, location in enumerate(location_list):
-        #     h = (location[3] - location[1]) // 2 + 15
-        #     position = [location[0], location[1] - h, location[2], location[3] - h]
-        #     now_img = tools.cv2AddChineseText(now_img, plates[index], position)
+            return
         cv2.imwrite("images/tmp/single_result.jpg", now_img)
         self.label_6.setScaledContents(True)
         self.label_6.setPixmap(QPixmap("images/tmp/single_result.jpg"))
@@ -138,25 +122,12 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         ret, now_img = self.cap.read()
         if ret:
             # 目标检测
-            results = self.model.predict(source=now_img, imgsz=self.output_size, conf=self.conf_threshold)
-            now_img = results[0].plot(labels=False)
-            location_list = results[0].boxes.xyxy.tolist()
-            location_list = [list(map(int, e)) for e in location_list]
-            plates = []
-            for i in range(len(location_list)):
-                x1, y1, x2, y2 = location_list[i]
-                im1 = now_img[y1 - 10:y2 + 10, x1 - 10:x2 + 10]
-                ocr = PaddleOCR(use_angle_cls=True, lang='ch')
-                result = ocr.ocr(im1, cls=True)
-                if len(result) > 0 and result[0] is not None:
-                    plate = result[0][0][1][0]
-                    plate = plate.replace('·', ' ')
-                    plates.append(plate)
-            for index, location in enumerate(location_list):
-                h = (location[3] - location[1]) // 2 + 15
-                position = [location[0], location[1] - h, location[2], location[3] - h]
-                now_img = tools.cv2AddChineseText(now_img, plates[index], position)
-            cv2.imwrite("images/tmp/single_result_vid.jpg", now_img)
+            try:
+                now_img2 = detect_image(now_img, self._detect_model, self._plate_rec_model, self._device)
+            except:
+                print(traceback.format_exc())
+                return
+            cv2.imwrite("images/tmp/single_result_vid.jpg", now_img2)
             self.label_8.clear()
             self.label_8.setScaledContents(True)
             self.label_8.setPixmap(QPixmap("images/tmp/single_result_vid.jpg"))
