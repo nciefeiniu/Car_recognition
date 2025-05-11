@@ -20,7 +20,7 @@ nest-asyncio
 opencv-python
 packaging
 pandas==1.5.3
-numpy~=1.20.3
+numpy==1.21.5
 parso
 pickleshare
 Pillow
@@ -46,4 +46,5 @@ typing-extensions
 urllib3
 wcwidth
 tensorboard==2.14.0
+pyqt5
 # pip install torch==1.11+cu113 torchvision==0.12+cu113 torchaudio==0.11 --extra-index-url https://download.pytorch.org/whl/cu113

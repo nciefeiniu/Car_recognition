@@ -230,6 +230,23 @@ def get_second(capture):
         return int(rate), int(FrameNumber), int(duration)
 
 
+def detect_image(image_path):
+    img = cv_imread(image_path)
+    if img.shape[-1] == 4:
+        img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    detect_model = load_model('./weights/detect.pt', device)
+    plate_rec_model = init_model_ocr(device, './weights/cars_number.pth')
+    dict_list = detect_recognition_plate(detect_model, img, device, plate_rec_model, 384)
+    ori_img = draw_result(img, dict_list)
+    # img_name = os.path.basename(opt.image_path)
+    # save_img_path = os.path.join(save_path, img_name)
+    return ori_img
+    # cv2.imwrite(save_img_path, ori_img)
+    # cv2.imshow('result', ori_img)
+    # cv2.waitKey()
+
+
 if __name__ == '__main__':
 
     if not os.path.exists('./result'):
@@ -245,7 +262,7 @@ if __name__ == '__main__':
     parser.add_argument('--image_path', type=str, default='./imgs/Quicker_20220930_181044.png', help='source')
     parser.add_argument('--img_size', type=int, default=384, help='inference size (pixels)')
     parser.add_argument('--output', type=str, default='./result1', help='source')
-    parser.add_argument('--video', type=str, default='./imgs/6.mp4', help='source')
+    parser.add_argument('--video', type=str, default='', help='source')
     parser.add_argument('--view-img', action='store_true', help='show results')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     opt = parser.parse_args()
@@ -300,7 +317,8 @@ if __name__ == '__main__':
             img_name = os.path.basename(opt.image_path)
             save_img_path = os.path.join(save_path, img_name)
             cv2.imwrite(save_img_path, ori_img)
-
+            cv2.imshow('result', ori_img)
+            cv2.waitKey()
     else:  # 处理视频
         video_name = opt.video
         capture = cv2.VideoCapture(video_name)
